@@ -1,7 +1,9 @@
+import movies as movies
 from flask import Flask, request
 from flask_restx import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 
+import utils
 from models import *
 from schemas import movie_schema, movies_schema
 
@@ -15,6 +17,7 @@ db = SQLAlchemy(app)
 
 api = Api(app)
 movie_ns = api.namespace('movies')
+movies = utils.pagination(movies, utils.page, utils.page_size).all()
 
 
 @movie_ns.route("/")
@@ -49,14 +52,60 @@ class MoviesView(Resource):
 class MovieView(Resource):
 
     def get(self, movie_id: int):
-        movie = db.session.query(Movie.id, Movie.title, Movie.description, Movie.rating,
-                                 Movie.trailer,
-                                 Genre.name.label('genre'),
-                                 Director.name.label('director')).join(Genre).join(Director).filter(
-            Movie.id == movie_id).first()
+        movie = db.session.query(Movie).get(movie_id)
         if movie:
             return movie_schema.dump(movie)
         return "Нет такого фильма", 404
+
+    def patch(self, movie_id: int):
+        movie = db.session.query(Movie).get(movie_id)
+        if not movie:
+            return "Нет такого фильма", 404
+
+        req_json = request.json
+        if 'title' in req_json:
+            movie.title = req_json['title']
+        elif 'description' in req_json:
+            movie.description = req_json['description']
+        elif 'trailer' in req_json:
+            movie.trailer = req_json['trailer']
+        elif 'rating' in req_json:
+            movie.rating = req_json['rating']
+        elif 'year' in req_json:
+            movie.year = req_json['year']
+        elif 'genre_id' in req_json:
+            movie.genre_id = req_json['genre_id']
+        elif 'director_id' in req_json:
+            movie.director_id = req_json['director_id']
+        db.session.add(movie)
+        db.session.commit()
+        return f"Объект с id {movie_id} обновлен!", 204
+
+    def put(self, movie_id):
+        movie = db.session.query(Movie).get(movie_id)
+        if not movie:
+            return "Нет такого фильма", 404
+
+        req_json = request.json
+        movie.title = req_json['title']
+        movie.description = req_json['description']
+        movie.year = req_json['year']
+        movie.trailer = req_json['trailer']
+        movie.rating = req_json['rating']
+        movie.genre_id = req_json['genre_id']
+        movie.director_id = req_json['director_id']
+        db.session.add(movie)
+        db.session.commit()
+        return f"Объект с {movie_id} обновлен", 204
+
+    def delete(self, movie_id):
+        movie = db.session.query(Movie).get(movie_id)
+        if not movie:
+            return "Нет такого фильма", 404
+
+        db.session.delete(movie)
+        db.session.commit()
+        return f"Объект с {movie_id} удален ", 204
 
 
 if __name__ == '__main__':
