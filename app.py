@@ -4,7 +4,7 @@ from flask_restx import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 
 import utils
-from models import *
+from models import Movie, Director, Genre
 from schemas import movie_schema, movies_schema
 
 app = Flask(__name__)
@@ -17,7 +17,6 @@ db = SQLAlchemy(app)
 
 api = Api(app)
 movie_ns = api.namespace('movies')
-movies = utils.pagination(movies, utils.page, utils.page_size).all()
 
 
 @movie_ns.route("/")
@@ -107,6 +106,10 @@ class MovieView(Resource):
         db.session.commit()
         return f"Объект с {movie_id} удален ", 204
 
+
+movies = utils.pagination(movies, utils.page, utils.page_size).all()
+page = int(request.args.get('page', 1))
+page_size = int(request.args.get('page_size', 10))
 
 if __name__ == '__main__':
     app.run(debug=True)
