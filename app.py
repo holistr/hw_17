@@ -108,7 +108,5 @@ class MovieView(Resource):
         return f"Объект с {movie_id} удален ", 204
 
 
-movies = utils.pagination(movies, utils.page, utils.page_size).all()
-
 if __name__ == '__main__':
     app.run(debug=True)
