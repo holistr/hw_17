@@ -38,7 +38,7 @@ class MoviesView(Resource):
         page = int(request.args.get('page', 1))
         page_size = int(request.args.get('page_size', 10))
         movies_list = utils.pagination(movie_with_genre_and_director, page, page_size)
-        return movie_with_genre_and_director(movies_list), 200
+        return movies_schema.dump(movies_list), 200
 
     def post(self):
         req_json = request.json
