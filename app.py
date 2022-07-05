@@ -35,8 +35,9 @@ class MoviesView(Resource):
         if genre_id:
             movie_with_genre_and_director = movie_with_genre_and_director.filter(Movie.genre_id == genre_id)
 
-        movies_list = movie_with_genre_and_director.all()
-
+        page = int(request.args.get('page', 1))
+        page_size = int(request.args.get('page_size', 10))
+        movies_list = utils.pagination(movie_with_genre_and_director, page, page_size)
         return movie_with_genre_and_director(movies_list), 200
 
     def post(self):
@@ -107,8 +108,6 @@ class MovieView(Resource):
         return f"Объект с {movie_id} удален ", 204
 
 
-page = int(request.args.get('page', 1))
-page_size = int(request.args.get('page_size', 10))
 movies = utils.pagination(movies, utils.page, utils.page_size).all()
 
 if __name__ == '__main__':
